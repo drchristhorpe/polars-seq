@@ -8,15 +8,42 @@ version = "0.1.0"
 description = "Polars expression plugin for translating DNA/RNA to protein, bit-for-bit compatible with BioPython's Seq.translate()"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
-authors = [{ name = "Chris Thorpe" }]
-keywords = ["polars", "bioinformatics", "dna", "rna", "protein", "translation", "codon"]
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Chris Thorpe", email = "drchristhorpe@googlemail.com" }]
+keywords = [
+    "polars",
+    "bioinformatics",
+    "dna",
+    "rna",
+    "protein",
+    "translation",
+    "codon",
+    "genetic-code",
+    "biopython",
+]
 classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
     "Programming Language :: Rust",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Typing :: Typed",
 ]
 dependencies = ["polars>=1.0"]
+
+[project.urls]
+Homepage = "https://github.com/drchristhorpe/polars-seq"
+Repository = "https://github.com/drchristhorpe/polars-seq"
+Changelog = "https://github.com/drchristhorpe/polars-seq/blob/master/CHANGELOG.md"
+Issues = "https://github.com/drchristhorpe/polars-seq/issues"
 
 [tool.maturin]
 python-source = "python"
@@ -30,3 +57,6 @@ dev = [
     "pytest>=8",
     "maturin>=1.7",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

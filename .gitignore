@@ -34,7 +34,6 @@ uv.lock
 /target/
 **/*.rs.bk
 *.pdb
-Cargo.lock
 
 # ---------- Project data & scratch ----------
 # Input sequence data: large (~10MB+), and not ours to redistribute.

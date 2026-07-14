@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The extension is abi3, so one build serves every version -- but the *tests* compare
+        # against BioPython, so run them across the range we claim to support.
+        python-version: ["3.10", "3.14"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Build the extension and install
+        run: uv sync --python ${{ matrix.python-version }}
+
+      - name: Run tests
+        # Includes the exhaustive 4913-codon x 27-table sweep and the BioPython
+        # differential fuzz -- i.e. this job IS the correctness guarantee.
+        run: uv run --python ${{ matrix.python-version }} pytest -q
+
+  codegen-is-current:
+    # The codon tables are generated from BioPython and committed. If someone edits them by
+    # hand, or bumps BioPython without regenerating, this catches it.
+    name: generated tables match BioPython
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Regenerate codon tables
+        run: uv run --no-project --with biopython python codegen/generate_tables.py
+
+      - name: Fail if the committed tables differ
+        run: |
+          if ! git diff --exit-code --stat -- src/codon_tables.rs python/polars_seq/_tables.py; then
+            echo "::error::Generated tables are out of date. Run codegen/generate_tables.py and commit."
+            exit 1
+          fi
+
+  lint-rust:
+    name: rustfmt + clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: rustfmt
+        # codon_tables.rs is generated; formatting it is not meaningful.
+        run: cargo fmt --check -- src/lib.rs src/translate.rs src/expressions.rs
+
+      - name: clippy
+        run: cargo clippy --all-targets -- -D warnings
