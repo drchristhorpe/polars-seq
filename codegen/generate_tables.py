@@ -207,14 +207,23 @@ def main() -> None:
     r.append("}")
     r.append("")
 
+    # `#[rustfmt::skip]` on every generated static is load bearing, not cosmetic. `cargo fmt`
+    # follows `mod` declarations, so formatting src/lib.rs reaches in here and reflows the
+    # bitsets to one entry per line -- after which this file no longer matches what the codegen
+    # produces, and the `codegen-is-current` CI job fails on a diff nobody made. Skipping fmt
+    # keeps the generated output the single canonical form.
     for t in tables:
         i = t["id"]
         r.append(f"// --- Table {i}: {', '.join(t['names'])} ---")
+        r.append("#[rustfmt::skip]")
         r.append(f"static CODE_{i}: &[u8; {N_CODONS}] = {rust_byte_string(t['code'])};")
+        r.append("#[rustfmt::skip]")
         r.append(f"static IS_STOP_{i}: &[u64; {N_WORDS}] = &{to_bitset(t['is_stop'])!r};")
+        r.append("#[rustfmt::skip]")
         r.append(f"static IS_START_{i}: &[u64; {N_WORDS}] = &{to_bitset(t['is_start'])!r};")
         r.append("")
 
+    r.append("#[rustfmt::skip]")
     r.append(f"pub static TABLES: [CodonTable; {len(tables)}] = [")
     for t in tables:
         i = t["id"]
