@@ -395,9 +395,6 @@ the dual-coding tables, the X-codon quirk — is right because BioPython worked 
 }
 ```
 
-If you want to cite `polars-seq` itself as well, link to
-<https://github.com/drchristhorpe/polars-seq> — but cite BioPython first.
-
 ## Licence
 
 MIT. BioPython is distributed under the [Biopython License Agreement / BSD 3-Clause
