@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "polars-seq"
-version = "0.1.0"
+version = "0.1.1"
 description = "Polars expression plugin for translating DNA/RNA to protein, bit-for-bit compatible with BioPython's Seq.translate()"
 readme = "README.md"
 requires-python = ">=3.10"
