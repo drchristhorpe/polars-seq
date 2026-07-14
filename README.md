@@ -1,5 +1,10 @@
 # polars-seq
 
+[![PyPI](https://img.shields.io/pypi/v/polars-seq)](https://pypi.org/project/polars-seq/)
+[![Python](https://img.shields.io/pypi/pyversions/polars-seq)](https://pypi.org/project/polars-seq/)
+[![CI](https://github.com/drchristhorpe/polars-seq/actions/workflows/ci.yml/badge.svg)](https://github.com/drchristhorpe/polars-seq/actions/workflows/ci.yml)
+[![Licence](https://img.shields.io/pypi/l/polars-seq)](LICENSE)
+
 Translate DNA/RNA to protein **inside Polars**, at Rust speed, with **exactly** the semantics of
 BioPython's `Seq.translate()`.
 
@@ -24,10 +29,39 @@ optimiser and the streaming engine.
 
 ---
 
-## Install and build (uv)
+## Install
 
-This is a compiled plugin, so building it needs a **Rust toolchain**. Nothing but `polars` is
-needed at runtime.
+```bash
+uv add polars-seq
+```
+
+or
+
+```bash
+pip install polars-seq
+```
+
+That's it. Pre-built wheels are published for Linux (x86_64, aarch64), macOS (Intel and Apple
+Silicon) and Windows (x64), so **you do not need Rust** — it only gets compiled if you are on a
+platform without a wheel, or you are building from source.
+
+Requires Python ≥ 3.10 and polars ≥ 1.0. The extension is built against the stable ABI (`abi3`),
+so one wheel serves 3.10 through 3.14 and beyond.
+
+Check it works:
+
+```bash
+uv run --with polars-seq --with polars python -c "
+import polars as pl, polars_seq
+print(pl.DataFrame({'dna': ['ATGAAATTTTAA']}).with_columns(p=pl.col('dna').seq.translate()))
+"
+```
+
+---
+
+## Building from source (uv)
+
+Only needed if you want to hack on it. You will need a **Rust toolchain**.
 
 ### 1. Prerequisites
 
@@ -51,8 +85,8 @@ You also need a C linker (`cc`). On Debian/Ubuntu: `sudo apt install build-essen
 ### 2. Build and install
 
 ```bash
-git clone <this repo>
-cd polars_seq
+git clone https://github.com/drchristhorpe/polars-seq
+cd polars-seq
 
 uv sync          # creates .venv on Python 3.14, compiles the Rust extension, installs everything
 ```
