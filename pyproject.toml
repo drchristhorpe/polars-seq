@@ -1,0 +1,32 @@
+[build-system]
+requires = ["maturin>=1.7,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "polars-seq"
+version = "0.1.0"
+description = "Polars expression plugin for translating DNA/RNA to protein, bit-for-bit compatible with BioPython's Seq.translate()"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Chris Thorpe" }]
+keywords = ["polars", "bioinformatics", "dna", "rna", "protein", "translation", "codon"]
+classifiers = [
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+dependencies = ["polars>=1.0"]
+
+[tool.maturin]
+python-source = "python"
+module-name = "polars_seq._internal"
+features = ["pyo3/extension-module"]
+strip = true
+
+[dependency-groups]
+dev = [
+    "biopython>=1.80",
+    "pytest>=8",
+    "maturin>=1.7",
+]

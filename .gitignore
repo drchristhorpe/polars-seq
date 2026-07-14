@@ -1,0 +1,53 @@
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+wheels/
+*.whl
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# Compiled extension modules (maturin builds these in-place into python/polars_seq/)
+*.so
+*.pyd
+*.dylib
+
+# ---------- Virtual environments ----------
+.venv/
+venv/
+env/
+
+# ---------- uv ----------
+uv.lock
+
+# ---------- Rust ----------
+/target/
+**/*.rs.bk
+*.pdb
+Cargo.lock
+
+# ---------- Project data & scratch ----------
+# Input sequence data: large (~10MB+), and not ours to redistribute.
+test_data/
+
+# Validation / benchmark outputs written for manual inspection.
+tmp/
+
+# ---------- Editors / OS / tooling ----------
+.claude/
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
