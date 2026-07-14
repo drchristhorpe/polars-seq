@@ -2,8 +2,8 @@
 
 Rather than re-implement BioPython's ambiguous-codon resolver in Rust (fiddly, and the
 source of the classic `RAT -> X` bug when the right answer is `B`), we use BioPython as
-an *oracle at build time*: enumerate every codon over the 16 valid IUPAC nucleotide
-letters, ask BioPython what it does, and bake the answers into a static Rust table.
+an *oracle at build time*: enumerate every codon over the 17 IUPAC nucleotide letters,
+ask BioPython what it does, and bake the answers into a static Rust table.
 
 The generated files are committed, so BioPython is a build-/test-time dependency only --
 never a runtime one.
@@ -30,8 +30,9 @@ warnings.simplefilter("ignore")  # dual-coding tables warn; we handle them expli
 # The consequence is genuinely surprising, and is why this alphabet has 17 letters and not 16:
 #   CTX -> 'L'      (all four CTx codons are Leu, so the codon resolves despite the X)
 #   XXX -> invalid  (does not resolve; the fallback validity check then rejects the 'X')
-# So an X-bearing codon is accepted exactly when it resolves to one amino acid, and is an
-# error otherwise -- it never yields 'X' or a stop. See PLAN.md section 4.3.
+# The rule, exactly: an X-bearing codon is accepted iff none of the codons it expands to is a
+# stop. When accepted it means whatever the 'N' spelling means (so AAX -> 'X', an *amino-acid*
+# ambiguity code). It can never come out as a stop. See PLAN.md section 4.3.
 ALPHABET = "ACGTURYWSMKHBVDNX"
 assert len(ALPHABET) == len(set(ALPHABET)) == 17
 
@@ -173,8 +174,6 @@ def main() -> None:
     r.append("/// `XXX` does not resolve and is then rejected as an invalid codon.")
     r.append(f'pub const ALPHABET: &[u8; 17] = b"{ALPHABET}";')
     r.append("")
-    r.append(f"pub const N_CODONS: usize = {N_CODONS};")
-    r.append("")
     r.append("/// A true stop codon -> emit the caller's `stop_symbol`.")
     r.append("pub const STOP: u8 = 0;")
     r.append("/// A codon BioPython refuses -> raise \"Codon '...' is invalid\".")
@@ -190,9 +189,11 @@ def main() -> None:
     r.append(f"    pub is_stop: &'static [u64; {N_WORDS}],")
     r.append("    /// Membership of the ambiguity-expanded start set (used by `cds`).")
     r.append(f"    pub is_start: &'static [u64; {N_WORDS}],")
-    r.append("    /// Codons that are simultaneously a stop and an amino acid.")
-    r.append("    pub dual_coding: &'static [&'static str],")
     r.append("}")
+    r.append("")
+    r.append("// The list of dual-coding codons per table lives in `polars_seq/_tables.py`, not")
+    r.append("// here: it is only needed to reject `to_stop` and to warn, both of which happen in")
+    r.append("// the Python layer once per expression rather than once per row.")
     r.append("")
     r.append("impl CodonTable {")
     r.append("    #[inline(always)]")
@@ -212,8 +213,6 @@ def main() -> None:
         r.append(f"static CODE_{i}: &[u8; {N_CODONS}] = {rust_byte_string(t['code'])};")
         r.append(f"static IS_STOP_{i}: &[u64; {N_WORDS}] = &{to_bitset(t['is_stop'])!r};")
         r.append(f"static IS_START_{i}: &[u64; {N_WORDS}] = &{to_bitset(t['is_start'])!r};")
-        dual = ", ".join(f'"{c}"' for c in t["dual_coding"])
-        r.append(f"static DUAL_{i}: &[&str] = &[{dual}];")
         r.append("")
 
     r.append(f"pub static TABLES: [CodonTable; {len(tables)}] = [")
@@ -221,7 +220,7 @@ def main() -> None:
         i = t["id"]
         r.append(
             f"    CodonTable {{ id: {i}, code: CODE_{i}, is_stop: IS_STOP_{i}, "
-            f"is_start: IS_START_{i}, dual_coding: DUAL_{i} }},"
+            f"is_start: IS_START_{i} }},"
         )
     r.append("];")
     r.append("")

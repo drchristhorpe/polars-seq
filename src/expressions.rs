@@ -59,9 +59,7 @@ fn translate_expr(inputs: &[Series], kwargs: TranslateKwargs) -> PolarsResult<Se
             }
             Err(e) => {
                 // Quote the row so a failure in a million-row frame is actionable.
-                return Err(
-                    polars_err!(ComputeError: "{e} (row {i}, sequence '{}')", truncate(s)),
-                );
+                return Err(polars_err!(ComputeError: "{e} (row {i}, sequence '{}')", truncate(s)));
             }
         }
     }

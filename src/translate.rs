@@ -61,7 +61,9 @@ impl fmt::Display for TranslateError {
         match self {
             Self::InvalidCodon(c) => write!(f, "Codon '{c}' is invalid"),
             Self::NotStartCodon(c) => write!(f, "First codon '{c}' is not a start codon"),
-            Self::NotMultipleOfThree(n) => write!(f, "Sequence length {n} is not a multiple of three"),
+            Self::NotMultipleOfThree(n) => {
+                write!(f, "Sequence length {n} is not a multiple of three")
+            }
             Self::NotStopCodon(c) => write!(f, "Final codon '{c}' is not a stop codon"),
             Self::ExtraStop => write!(f, "Extra in frame stop codon found."),
             Self::NonAscii => write!(f, "Sequence contains non-ASCII characters"),
@@ -70,10 +72,17 @@ impl fmt::Display for TranslateError {
 }
 
 fn upper(bytes: &[u8]) -> String {
-    bytes.iter().map(|b| b.to_ascii_uppercase() as char).collect()
+    bytes
+        .iter()
+        .map(|b| b.to_ascii_uppercase() as char)
+        .collect()
 }
 
 /// Translate one sequence, appending to `out` (reused across rows to avoid re-allocating).
+// `n % 3` says "reading frame" to anyone who works on sequences, in a way that
+// `is_multiple_of(3)` does not -- and using it would raise our minimum Rust version for no
+// benefit, which matters because the sdist is built from source on the user's machine.
+#[allow(clippy::manual_is_multiple_of)]
 pub fn translate(
     seq: &[u8],
     tbl: &CodonTable,
@@ -177,6 +186,8 @@ const fn build_complement() -> [u8; 256] {
     }
     // Ambiguity codes complement as their base sets do: R(AG)<->Y(CT), K(GT)<->M(AC),
     // B(CGT)<->V(ACG), D(AGT)<->H(ACT); S(CG) and W(AT) are self-complementary.
+    // Laid out as a table on purpose -- the pairing is the point, and one-per-line hides it.
+    #[rustfmt::skip]
     let pairs: &[(u8, u8)] = &[
         (b'A', b'T'), (b'T', b'A'), (b'C', b'G'), (b'G', b'C'), (b'U', b'A'),
         (b'R', b'Y'), (b'Y', b'R'), (b'S', b'S'), (b'W', b'W'),
