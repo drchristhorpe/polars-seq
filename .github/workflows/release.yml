@@ -28,8 +28,11 @@ jobs:
         platform:
           - { os: linux, runner: ubuntu-22.04, target: x86_64 }
           - { os: linux, runner: ubuntu-22.04, target: aarch64 }
-          - { os: macos, runner: macos-13, target: x86_64 }
+          # Both macOS wheels are built on Apple Silicon; the Intel one is cross-compiled.
+          # GitHub retired the Intel macOS runners, so a `macos-13` job simply sits in the
+          # queue forever without ever being assigned a runner -- it does not fail, it hangs.
           - { os: macos, runner: macos-14, target: aarch64 }
+          - { os: macos, runner: macos-14, target: x86_64 }
           - { os: windows, runner: windows-latest, target: x64 }
 
     steps:
